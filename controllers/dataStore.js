@@ -3,20 +3,30 @@ const util = require('util');
 const fs = require('fs');
 const homeDir = require('os').homedir();
 const desktopDir = `${homeDir}/Desktop`;
+const { sizeof } = require("file-sizeof");
 exports.createDataStore = async(req, res) => {
     const writeFile = await util.promisify(fs.writeFile);
     let filePath = req.body.filePath === undefined ? desktopDir : req.body.filePath;
     const defaultFileName = "dataStore.json";
     let dataCreateResult = undefined;
-    filePath = filePath + "/" + defaultFileName;
+    const currentPath = filePath;
+    const desktopFilePath = filePath;
+    filePath = currentPath + "/" + defaultFileName;
     const query = {key: req.body.key};
     let error = false;
     let isSaved = false;
+    const fileSize = sizeof.IEC(desktopFilePath + "/" + defaultFileName);
+    const fileSizeInMB = parseInt(fileSize.MB);
+    if(fileSizeInMB >= 1024) {
+      return res.status(400).json({
+        data: {
+          message: 'Failed since Size of the JSON File has reached the desired limit: 1GB'}
+      });
+    }
     await dataStore.findOne(query).then(async(dataStoreResult) => {
         dataCreateResult = dataStoreResult;
         if(dataStoreResult === null || dataStoreResult === undefined) {
-            let dataStoreRequestValues = {...req.body};
-            dataStoreRequestValues['file_path'] = filePath;
+            const dataStoreRequestValues = {...req.body};
             const dataStoreData = new dataStore(dataStoreRequestValues);
             await dataStoreData.save().then((dataStoreResult) => {
                 isSaved = true;
@@ -30,14 +40,6 @@ exports.createDataStore = async(req, res) => {
               })
             });
         } else {
-          if(dataStoreResult.file_path !== undefined) {
-            if(dataStoreResult.file_path !== filePath) {
-              await dataStore.updateOne(query, {"$set": filePath}).then(async(dataStoreResult) => {
-              }).catch((err) => {
-                console.log(err);
-              });
-            }
-          }
           error = true;
           res.status(400).json({
             data: {
@@ -57,17 +59,28 @@ exports.createDataStore = async(req, res) => {
       const fileData = {key: dataCreateResult.key, value: dataCreateResult.value};
       const readFile = await util.promisify(fs.readFile);
       let fileDataResult = [];
-      await readFile(filePath).then((fileResult) => {
+      let existingPath = undefined;
+      if(desktopFilePath !== currentPath) {
+        existingPath = desktopFilePath;
+      }
+      await readFile(existingPath !== undefined ? existingPath + "/" + defaultFileName : filePath).then((fileResult) => {
         fileDataResult = JSON.parse(fileResult);
       }).catch((err) => {
 
       });
+      if(existingPath !== undefined) {
+        const deleteFile = await util.promisify(fs.unlink);
+        await deleteFile(existingPath + "/" + defaultFileName).then(() => {
+
+        }).catch((err) => {
+
+        });
+      }
       if(fileDataResult !== undefined && fileDataResult.length > 0) {
         fileDataResult.push(fileData);
       } else {
         fileDataResult = [fileData];
       }
-      console.log(fileDataResult);
       await writeFile(filePath, JSON.stringify(fileDataResult)).then(() => {
 
       }).catch((err) => {

@@ -14,6 +14,7 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "file-sizeof": "^1.0.4",
     "mongoose": "^5.8.1",
     "nodemon": "^2.0.2",
     "util": "^0.12.1"
