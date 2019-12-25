@@ -1,0 +1,10 @@
+{
+    "env": {
+        "NODE_ENV": "development",
+        "MONGO_DB_USERNAME": "dbuser",
+        "MONGO_DB_PASSWORD": "password",
+        "MONGO_DB_DATABASE": "myAppDB",
+        "MONGO_DB_HOST": "127.0.0.1",
+        "DEFAULT_FILE_NAME": "dataStore.json"
+    }
+}

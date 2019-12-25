@@ -18,7 +18,7 @@ exports.createDataStore = async(req, res) => {
         });
     });
     let filePath = req.body.filePath === undefined ? desktopDir : req.body.filePath;
-    const defaultFileName = "dataStore.json";
+    const defaultFileName = process.env.DEFAULT_FILE_NAME;
     let dataCreateResult = undefined;
     const currentPath = filePath;
     const desktopFilePath = desktopDir;

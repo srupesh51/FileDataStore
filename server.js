@@ -20,12 +20,10 @@ const options = {
   connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
   family: 4, // Use IPv4, skip trying IPv6
-  dbName: 'myAppDB',
-  user: "dbuser",
-  pass: "password"
+  dbName: process.env.MONGO_DB_DATABASE
 };
 mongoose.set('debug', true);
-mongoose.connect('mongodb://dbuser:password@127.0.0.1', options)
+mongoose.connect('mongodb://' + process.env.MONGO_DB_USERNAME + ':' + process.env.MONGO_DB_PASSWORD + '@' + process.env.MONGO_DB_HOST, options)
   .then(() => {
       console.log('Connected to Database!');
 }).catch((error) => {
