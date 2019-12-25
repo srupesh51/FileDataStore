@@ -5,6 +5,7 @@
         "MONGO_DB_PASSWORD": "password",
         "MONGO_DB_DATABASE": "myAppDB",
         "MONGO_DB_HOST": "127.0.0.1",
-        "DEFAULT_FILE_NAME": "dataStore.json"
+        "DEFAULT_FILE_NAME": "dataStore.json",
+        "SERVER_PORT": 4000
     }
 }
