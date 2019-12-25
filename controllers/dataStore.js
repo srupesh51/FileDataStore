@@ -4,18 +4,58 @@ const fs = require('fs');
 const homeDir = require('os').homedir();
 const desktopDir = `${homeDir}/Desktop`;
 const { sizeof } = require("file-sizeof");
+let serialNumber = require('serial-number');
+const device = require('../models/device');
 exports.createDataStore = async(req, res) => {
     const writeFile = await util.promisify(fs.writeFile);
+    serialNumber = await util.promisify(serialNumber);
+    let deviceSerialNumber = undefined;
+    await serialNumber().then((value) => {
+      deviceSerialNumber =  value;
+    }).catch((error) => {
+        return res.status(400).json({
+          data: {message: 'Unable to get Device Serial Number. Hence Exiting!'}
+        });
+    });
     let filePath = req.body.filePath === undefined ? desktopDir : req.body.filePath;
     const defaultFileName = "dataStore.json";
     let dataCreateResult = undefined;
     const currentPath = filePath;
-    const desktopFilePath = filePath;
+    const desktopFilePath = desktopDir;
+    let isDifferent = false;
+    if(currentPath !== desktopFilePath) {
+      isDifferent = true;
+    }
     filePath = currentPath + "/" + defaultFileName;
+    filePath =  filePath.toString();
+    filePath = filePath.replace(/\/\//g, "/");
     const query = {key: req.body.key};
     let error = false;
     let isSaved = false;
-    const fileSize = sizeof.IEC(desktopFilePath + "/" + defaultFileName);
+    const updatedFilePath = !isDifferent ? desktopFilePath : currentPath;
+    let previousFilePath = undefined;
+    if(deviceSerialNumber !== undefined) {
+        let deviceData = undefined;
+        await device.findOne({ID: deviceSerialNumber}).then(async(devResponse) => {
+          deviceData = devResponse;
+          if(deviceData === null || deviceData === undefined) {
+            const deviceModelData = new device({ID: deviceSerialNumber});
+            await deviceModelData.save().then(() => {
+
+            }).catch((err) => {
+              return res.status(400).json({
+                data: {message: 'Unable to store Device Data. Hence Exiting!'}
+              });
+            });
+          }
+        }).catch((err) => {
+          console.log(err);
+          return res.status(400).json({
+            data: {message: 'Unable to get Device Data. Hence Exiting!'}
+          });
+        });
+    }
+    const fileSize = sizeof.IEC(previousFilePath !== undefined ? previousFilePath + "/" + defaultFileName : filePath);
     const fileSizeInMB = parseInt(fileSize.MB);
     if(fileSizeInMB >= 1024) {
       return res.status(400).json({
@@ -33,7 +73,7 @@ exports.createDataStore = async(req, res) => {
                 dataCreateResult = dataStoreResult;
             }).catch((err) => {
               error = true;
-              res.status(400).json({
+              return res.status(400).json({
                 data: {
                   message: 'Failed to save Data Store with given key'
                 }
@@ -41,7 +81,7 @@ exports.createDataStore = async(req, res) => {
             });
         } else {
           error = true;
-          res.status(400).json({
+          return res.status(400).json({
             data: {
               message: 'Failed since Data Store is already present with the given key'
             }
@@ -49,7 +89,7 @@ exports.createDataStore = async(req, res) => {
         }
     }).catch((err) => {
       error = true;
-      res.status(400).json({
+      return res.status(400).json({
           data: {
             message: 'Failed to check Data Store with the given key'
           }
@@ -137,7 +177,7 @@ exports.deleteDataStore = async(req, res) => {
         });
     });
     if(!error && dataResult !== undefined) {
-      const filePath = dataResult.file_path;
+      const filePath = desktopDir +"/" + "dataStore.json";
       const writeFile = await util.promisify(fs.writeFile);
       const readFile = await util.promisify(fs.readFile);
       const fileData = {key: dataResult.key, value: dataResult.value};

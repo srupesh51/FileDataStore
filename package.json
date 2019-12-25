@@ -1,22 +1,23 @@
 {
-  "name": "todo-backend",
+  "name": "file-datastore-backend",
   "version": "1.0.0",
-  "description": "A Backend API end points for todo posts",
+  "description": "A Backend API end points for File Data Store Create Read     Delete Operations",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "client": "npm start --prefix client",
     "server": "nodemon server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "dependencies": {
     "body-parser": "^1.19.0",
+    "concurrently": "^5.0.2",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "file-sizeof": "^1.0.4",
     "mongoose": "^5.8.1",
     "nodemon": "^2.0.2",
+    "serial-number": "^1.3.0",
     "util": "^0.12.1"
   },
   "proxy": "http://localhost:9000",
