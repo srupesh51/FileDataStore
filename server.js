@@ -23,7 +23,7 @@ const options = {
   dbName: process.env.MONGO_DB_DATABASE
 };
 mongoose.set('debug', true);
-mongoose.connect('mongodb://' + process.env.MONGO_DB_USERNAME + ':' + process.env.MONGO_DB_PASSWORD + '@' + process.env.MONGO_DB_HOST, options)
+mongoose.connect('mongodb://' + process.env.MONGO_DB_USERNAME + ':' + process.env.MONGO_DB_PASSWORD + '@' + process.env.MONGO_DB_HOST + ':' + '27017' + '/' + process.env.MONGO_DB_DATABASE, options)
   .then(() => {
       console.log('Connected to Database!');
 }).catch((error) => {
